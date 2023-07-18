@@ -13,4 +13,8 @@ const config = {
     scene: [Scene1, Scene2]
 }
 
+const gameSettings = {
+    playerSpeed: 200
+}
+
 const game = new Phaser.Game(config);
