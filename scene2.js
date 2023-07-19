@@ -53,6 +53,21 @@ class Scene2 extends Phaser.Scene {
       this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
       this.projectiles = this.add.group();
+
+      this.physics.add.collider(this.projectiles, this.powerUps, function (projectiles, powerUp) {
+        projectiles.destroy();
+      })
+
+      this.physics.add.overlap(this.player, this.powerUps, this.pickPowerUp, null, this);
+      
+      this.enemies= this.physics.add.group();
+      this.enemies.add(this.ship1)
+      this.enemies.add(this.ship2)
+      this.enemies.add(this.ship3)
+
+      this.physics.add.overlap(this.player, this.enemies, this.hurtPlayer, null, this);
+
+      this.physics.add.overlap(this.projectiles, this.enemies, this.hitEnemy, null, this);
     }
   
     update() {
@@ -71,6 +86,10 @@ class Scene2 extends Phaser.Scene {
         var beam = this.projectiles.getChildren()[i];
         beam.update();
       }
+    }
+
+    pickPowerUp(player, powerUp) {
+        powerUp.disableBody(true, true);
     }
 
     shootBeam() {
@@ -94,6 +113,17 @@ class Scene2 extends Phaser.Scene {
         }
     }
   
+    hurtPlayer(player, enemy) {
+        this.resetShipPos(enemy);
+        player.x = config.width / 2 - 8;
+        player.y = config.height - 64;
+    }
+
+    hitEnemy(projectile, enemy) {
+        projectile.destroy();
+        this.resetShipPos(enemy);
+    }
+
     moveShip(ship, speed) {
       ship.y += speed;
       if (ship.y > config.height) {
