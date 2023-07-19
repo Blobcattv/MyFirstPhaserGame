@@ -63,16 +63,19 @@ class Scene2 extends Phaser.Scene {
     }
 
     movePlayerManager() {
+        const Move = 200;
+        this.player.setDrag(2000);
+
         if (this.cursorKeys.left.isDown) {
-            this.player.setVelocityX(-gameSettings.playerSpeed);
+            this.player.setVelocityX(-Move);
         } else if(this.cursorKeys.right.isDown) {
-            this.player.setVelocityX(gameSettings.playerSpeed);
+            this.player.setVelocityX(Move);
         }
 
-        if (this.cursorKeys.up.isDown) {
-            this.player.setVelocityY(-gameSettings.playerSpeed);
+         if (this.cursorKeys.up.isDown) {
+            this.player.setVelocityY(-Move);
         } else if(this.cursorKeys.down.isDown) {
-            this.player.setVelocityY(gameSettings.playerSpeed);
+            this.player.setVelocityY(Move);
         }
     }
   
