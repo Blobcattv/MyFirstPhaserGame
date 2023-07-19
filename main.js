@@ -1,6 +1,6 @@
 const config = {
-    width: 400,
-    height: 400,
+    width: 600,
+    height: 500,
     backgroundColor: 0x20395,
     pixelArt: true,
     physics: {
@@ -11,10 +11,6 @@ const config = {
     },
     zoom: 2,
     scene: [Scene1, Scene2]
-}
-
-const gameSettings = {
-    playerSpeed: 200
 }
 
 const game = new Phaser.Game(config);
