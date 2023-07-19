@@ -21,11 +21,11 @@ class Scene2 extends Phaser.Scene {
       this.ship3.setInteractive();
   
       this.input.on('gameobjectdown', this.destroyShip, this);
-  
-      this.add.text(20, 20, "Playing game", {
-        font: "25px Arial",
-        fill: "yellow"
-      });
+      
+      this.score = 0;
+      this.scoreLabel = this.add.text(10, 5, "SCORE: ", {
+        font: "20px"
+      })
 
       this.powerUps = this.physics.add.group();
       const maxObjects = 4;
@@ -122,6 +122,9 @@ class Scene2 extends Phaser.Scene {
     hitEnemy(projectile, enemy) {
         projectile.destroy();
         this.resetShipPos(enemy);
+
+        this.score += 15;
+        this.scoreLabel.text = "SCORE: " + this.score;
     }
 
     moveShip(ship, speed) {
