@@ -27,23 +27,24 @@ class Scene2 extends Phaser.Scene {
         font: "20px"
       })
 
-      this.powerUps = this.physics.add.group();
-      const maxObjects = 4;
-      for (var i = 0; i <= maxObjects; i++) {
-        const powerUp = this.physics.add.sprite(16, 16, "power-up");
-        this.powerUps.add(powerUp);
-        powerUp.setRandomPosition(0, 0, game.config.width, game.config.height)
+    //   this.powerUps = this.physics.add.group();
+    //   const maxObjects = 4;
 
-        if (Math.random() > 0.5) {
-            powerUp.play("red");
-        } else {
-            powerUp.play("gray");
-        }
+    //   for (var i = 0; i <= maxObjects; i++) {
+    //     const powerUp = this.physics.add.sprite(16, 16, "power-up");
+    //     this.powerUps.add(powerUp);
+    //     powerUp.setRandomPosition(0, 0, game.config.width, game.config.height)
 
-        powerUp.setVelocity(100, 100)
-        powerUp.setCollideWorldBounds(true);
-        powerUp.setBounce(1);
-      }
+    //     if (Math.random() > 0.5) {
+    //         powerUp.play("red");
+    //     } else {
+    //         powerUp.play("gray");
+    //     }
+
+    //     powerUp.setVelocity(100, 100)
+    //     powerUp.setCollideWorldBounds(true);
+    //     powerUp.setBounce(1);
+    //   }
 
       this.player = this.physics.add.sprite(config.width / 2 - 8, config.height - 46, "player");
       this.player.play("thrust");
@@ -54,11 +55,11 @@ class Scene2 extends Phaser.Scene {
 
       this.projectiles = this.add.group();
 
-      this.physics.add.collider(this.projectiles, this.powerUps, function (projectiles, powerUp) {
-        projectiles.destroy();
-      })
+    //   this.physics.add.collider(this.projectiles, this.powerUps, function (projectiles, powerUp) {
+    //     projectiles.destroy();
+    //   })
 
-      this.physics.add.overlap(this.player, this.powerUps, this.pickPowerUp, null, this);
+    //   this.physics.add.overlap(this.player, this.powerUps, this.pickPowerUp, null, this);
       
       this.enemies= this.physics.add.group();
       this.enemies.add(this.ship1)
@@ -68,6 +69,22 @@ class Scene2 extends Phaser.Scene {
       this.physics.add.overlap(this.player, this.enemies, this.hurtPlayer, null, this);
 
       this.physics.add.overlap(this.projectiles, this.enemies, this.hitEnemy, null, this);
+
+      this.beamSound = this.sound.add("beam");
+      this.explosionSound = this.sound.add("explosion");
+      this.music = this.sound.add("music");
+    //   this.pickupSound = this.sound.add("pickup");
+
+        const musicConfig = {
+            mute: false,
+            volume: 1,
+            rate: 1,
+            detune: 0,
+            seek: 0,
+            loop: false,
+            delay: 0
+        }
+     this.music.play(musicConfig);
     }
   
     update() {
@@ -80,20 +97,23 @@ class Scene2 extends Phaser.Scene {
       this.movePlayerManager();
 
       if (Phaser.Input.Keyboard.JustDown(this.spacebar)) {
-        this.shootBeam();
+        if (this.player.active) {
+            this.shootBeam();
+        }
       }
-      for(var i = 0; i < this.projectiles.getChildren().length; i++){
-        var beam = this.projectiles.getChildren()[i];
-        beam.update();
-      }
+
+      this.projectiles.getChildren().forEach((projectile) => {
+        projectile.update();
+      });
     }
 
-    pickPowerUp(player, powerUp) {
-        powerUp.disableBody(true, true);
-    }
+    // pickPowerUp(player, powerUp) {
+    //     powerUp.disableBody(true, true);
+    // }
 
     shootBeam() {
         const beam = new Beam(this);
+        this.beamSound.play();
     }
 
     movePlayerManager() {
@@ -112,19 +132,57 @@ class Scene2 extends Phaser.Scene {
             this.player.setVelocityY(Move);
         }
     }
+
+    resetPlayer() {
+        const x = config.width / 2 - 8;
+        const y = config.height + 64;
+        this.player.enableBody(true, x, y, true, true);
+
+        this.player.alpha = 0.5;
+
+        const tween = this.tweens.add({
+            targets: this.player,
+            y: config.height - 64,
+            ease: 'Power1',
+            duration: 1500,
+            repeat:0,
+            onComplete: function(){
+              this.player.alpha = 1;
+            },
+            callbackScope: this
+        });
+    }
   
     hurtPlayer(player, enemy) {
         this.resetShipPos(enemy);
-        player.x = config.width / 2 - 8;
-        player.y = config.height - 64;
+
+        if(this.player.alpha < 1){
+            return;
+        }
+        
+        const explosion = new Explosion(this, player.x, player.y);
+        player.disableBody(true,true);
+
+        this.time.addEvent({
+            delay: 1000,
+            callback: this.resetPlayer,
+            callbackScope: this,
+            loop: false
+        });
+
+        this.explosionSound.play();
     }
 
     hitEnemy(projectile, enemy) {
+        const explosion = new Explosion(this, enemy.x, enemy.y);
+
         projectile.destroy();
         this.resetShipPos(enemy);
 
         this.score += 15;
         this.scoreLabel.text = "SCORE: " + this.score;
+
+        this.explosionSound.play();
     }
 
     moveShip(ship, speed) {
@@ -136,7 +194,7 @@ class Scene2 extends Phaser.Scene {
   
     resetShipPos(ship){
       ship.y = 0;
-      var randomX = Phaser.Math.Between(0, config.width);
+      const randomX = Phaser.Math.Between(0, config.width);
       ship.x = randomX;
     }
   
